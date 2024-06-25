@@ -23,6 +23,7 @@ from user.config import avatar_folder
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("user/", include("user.urls")),
+    path("patient/", include("patient.urls")),
     path("docs/", include_docs_urls(title="API")),
     path(avatar_folder +'<str:file_name>', show_image, name='avatar'),
 ]

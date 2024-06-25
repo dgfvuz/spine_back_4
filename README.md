@@ -12,7 +12,7 @@ python manage.py makemigrations
 python manage.py migrate
 
 ### apps:
-user(已完成)
-patient(待完成)
+user(已完成) python manage.py startapp user
+patient(待完成) python manage.py startapp patient
 Xray(待完成)
 report(待完成)

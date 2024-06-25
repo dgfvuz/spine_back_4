@@ -14,7 +14,6 @@ import user.config as config
 from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.response import Response
-from .pagination import CustomPagination
 # 创建用户
 class CustomUserCreate(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
