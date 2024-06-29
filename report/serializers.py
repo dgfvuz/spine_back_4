@@ -5,3 +5,8 @@ class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = '__all__'
+
+class GenerateReportSerializer(serializers.Serializer):
+    class Meta:
+        model = Report
+        fields = {'id'}

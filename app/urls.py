@@ -17,9 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework.documentation import include_docs_urls
-from user.views import show_image
+from user.views import ShowImageView
 from user.config import avatar_folder
-from report.views import show_xray_image
+from report.views import ShowXRayImageView
 from report.config import X_ray_folder
 
 urlpatterns = [
@@ -28,7 +28,7 @@ urlpatterns = [
     path("patient/", include("patient.urls")),
     path("report/", include("report.urls")),
     path("docs/", include_docs_urls(title="API")),
-    path(avatar_folder +'<str:file_name>', show_image, name='avatar'),
-    path(X_ray_folder +'<str:file_name>', show_xray_image, name='xray'),
+    path(avatar_folder +'<str:file_name>', ShowImageView.as_view(), name='avatar'),
+    path(X_ray_folder +'<str:file_name>', ShowXRayImageView.as_view(), name='xray'),
 ]
 

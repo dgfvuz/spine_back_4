@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CustomUserCreate, CustomTokenObtainPairView, CustomTokenRefreshView, CustomUserList, CustomUserDetail, show_image
+from .views import CustomUserCreate, CustomTokenObtainPairView, CustomTokenRefreshView, CustomUserList, CustomUserDetail
 from django.conf.urls.static import static
 from django.conf import settings
 from .config import avatar_folder

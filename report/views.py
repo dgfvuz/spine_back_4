@@ -8,12 +8,13 @@ from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from .models import Report
-from .serializers import ReportSerializer
+from .serializers import ReportSerializer, GenerateReportSerializer
 from patient.pagination import CustomPagination
 from .config import X_ray_folder
 from .model import getResult
 from django.http import HttpResponse
 from rest_framework import status
+from rest_framework.views import APIView
 
 class CreateReport(generics.CreateAPIView):
     queryset = Report.objects.all()
@@ -37,6 +38,7 @@ def generate_report(instance):
 
 # 定义HTTP方法为post
 class RegenerateReportView(generics.GenericAPIView):
+    serializer_class = GenerateReportSerializer
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
@@ -72,8 +74,22 @@ class DetailReport(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     lookup_field = 'id'
 
-def show_xray_image(request,file_name):
-    print(file_name)
-    image_file = X_ray_folder + file_name
-    print(image_file)
-    return FileResponse(open(image_file, 'rb'))
+
+class ShowXRayImageView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self,request,file_name):
+        image_file = X_ray_folder + file_name
+        return FileResponse(open(image_file, 'rb'))
+
+
+# class DownLoadZipView(APIView):
+#     permission_classes = [IsAuthenticated]
+#     def get(self,request,file_name):
+#         return FileResponse(open("3.zip", 'rb'))
+
+
+# def show_xray_image(request,file_name):
+#     print(file_name)
+#     image_file = X_ray_folder + file_name
+#     print(image_file)
+#     return FileResponse(open(image_file, 'rb'))

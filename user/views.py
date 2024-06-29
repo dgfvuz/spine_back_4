@@ -14,6 +14,7 @@ import user.config as config
 from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 # 创建用户
 class CustomUserCreate(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
@@ -94,8 +95,14 @@ class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
 
 
-def show_image(request,file_name):
-    print(file_name)
-    image_file = config.avatar_folder + file_name
-    print(image_file)
-    return FileResponse(open(image_file, 'rb'))
+class ShowImageView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, file_name):
+        image_file = config.avatar_folder + file_name
+        return FileResponse(open(image_file, 'rb'))
+
+# def show_image(request,file_name):
+#     print(file_name)
+#     image_file = config.avatar_folder + file_name
+#     print(image_file)
+#     return FileResponse(open(image_file, 'rb'))
