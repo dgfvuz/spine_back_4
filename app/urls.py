@@ -19,12 +19,16 @@ from django.urls import include, path
 from rest_framework.documentation import include_docs_urls
 from user.views import show_image
 from user.config import avatar_folder
+from report.views import show_xray_image
+from report.config import X_ray_folder
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("user/", include("user.urls")),
     path("patient/", include("patient.urls")),
+    path("report/", include("report.urls")),
     path("docs/", include_docs_urls(title="API")),
     path(avatar_folder +'<str:file_name>', show_image, name='avatar'),
+    path(X_ray_folder +'<str:file_name>', show_xray_image, name='xray'),
 ]
 

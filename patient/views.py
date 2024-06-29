@@ -22,6 +22,7 @@ class ListPatient(generics.ListAPIView):
         name = self.request.query_params.get('name', None)
         gender = self.request.query_params.get('gender', None)
         age__gt = self.request.query_params.get('age__gt', None)
+        age = self.request.query_params.get('age', None)
         age__lt = self.request.query_params.get('age__lt', None)
         region = self.request.query_params.get('region', None)
         address = self.request.query_params.get('address', None)
@@ -34,6 +35,8 @@ class ListPatient(generics.ListAPIView):
         # 根据年龄过滤
         if age__gt is not None:
             queryset = queryset.filter(age__gt=age__gt)
+        if age is not None:
+            queryset = queryset.filter(age=age)
         # 根据年龄过滤
         if age__lt is not None:
             queryset = queryset.filter(age__lt=age__lt)

@@ -48,6 +48,5 @@ user(已完成) ```python manage.py startapp user```
 
 patient(已完成) ```python manage.py startapp patient```
 
-Xray(待完成) ```python manage.py startapp Xray```
 
 report(待完成) ```python manage.py startapp report```
