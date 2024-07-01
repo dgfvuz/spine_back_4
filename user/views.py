@@ -96,7 +96,7 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 
 class ShowImageView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     def get(self, request, file_name):
         image_file = config.avatar_folder + file_name
         return FileResponse(open(image_file, 'rb'))

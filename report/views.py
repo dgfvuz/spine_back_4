@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 from django.shortcuts import render
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from .models import Report
 from .serializers import ReportSerializer, GenerateReportSerializer
 from patient.pagination import CustomPagination
@@ -76,7 +76,7 @@ class DetailReport(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ShowXRayImageView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     def get(self,request,file_name):
         image_file = X_ray_folder + file_name
         return FileResponse(open(image_file, 'rb'))
