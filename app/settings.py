@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     "user",
     "patient",
     "report",
+    "advice",
+    "collect",
     "rest_framework_simplejwt",
 ]
 

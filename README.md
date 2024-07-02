@@ -48,5 +48,8 @@ user(已完成) ```python manage.py startapp user```
 
 patient(已完成) ```python manage.py startapp patient```
 
+report(已完成) ```python manage.py startapp report```
 
-report(待完成) ```python manage.py startapp report```
+collect(待完成) ```python manage.py startapp collect```
+
+advice(已完成) ```python manage.py startapp advice```

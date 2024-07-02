@@ -27,6 +27,8 @@ urlpatterns = [
     path("user/", include("user.urls")),
     path("patient/", include("patient.urls")),
     path("report/", include("report.urls")),
+    path("advice/", include("advice.urls")),
+    path("collect/", include("collect.urls")),
     path("docs/", include_docs_urls(title="API")),
     path(avatar_folder +'<str:file_name>', ShowImageView.as_view(), name='avatar'),
     path(X_ray_folder +'<str:file_name>', ShowXRayImageView.as_view(), name='xray'),
