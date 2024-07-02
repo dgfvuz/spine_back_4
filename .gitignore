@@ -5,3 +5,6 @@ avatar
 db.sqlite3
 
 X_ray
+
+**/__pycache__/
+**/migrations/
