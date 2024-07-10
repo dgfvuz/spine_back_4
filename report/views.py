@@ -15,6 +15,7 @@ from .model import getResult
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
+from django.utils.dateparse import parse_datetime
 
 class CreateReport(generics.CreateAPIView):
     queryset = Report.objects.all()
@@ -62,9 +63,26 @@ class ListReport(generics.ListAPIView):
     def get_queryset(self):
         queryset = Report.objects.all().order_by('-update_time')
         # 获取查询参数
-        patient_id = self.request.query_params.get('patient_id', None)
-        if patient_id is not None:
-            queryset = queryset.filter(patient_id=patient_id)
+        patient = self.request.query_params.get('patient', None)
+        start_time = self.request.query_params.get('start_time', None)
+        end_time = self.request.query_params.get('end_time', None)
+        status = self.request.query_params.get('status', None)
+        if status is not None:
+            queryset = queryset.filter(status=status)
+        if patient is not None:
+            queryset = queryset.filter(patient=patient)
+
+        # 解析开始时间和结束时间
+        if start_time is not None:
+            start_time = parse_datetime(start_time)
+            if start_time:
+                queryset = queryset.filter(update_time__gte=start_time)
+
+        if end_time is not None:
+            end_time = parse_datetime(end_time)
+            if end_time:
+                queryset = queryset.filter(update_time__lte=end_time)
+
         return queryset
 
 
