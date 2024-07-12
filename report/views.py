@@ -8,7 +8,7 @@ from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated,AllowAny
 from .models import Report
-from .serializers import ReportSerializer, GenerateReportSerializer
+from .serializers import ReportSerializer, GenerateReportSerializer, ReportAnalysisSerializer
 from patient.pagination import CustomPagination
 from .config import X_ray_folder
 from .model import getResult
@@ -99,6 +99,51 @@ class ShowXRayImageView(APIView):
         image_file = X_ray_folder + file_name
         return FileResponse(open(image_file, 'rb'))
 
+class ListAnalysisView(generics.ListAPIView):
+    serializer_class = ReportAnalysisSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
+    def get_queryset(self):
+        queryset = Report.objects.select_related('patient').order_by('-update_time')        
+        # 获取查询参数
+        patient = self.request.query_params.get('patient', None)
+        start_time = self.request.query_params.get('start_time', None)
+        end_time = self.request.query_params.get('end_time', None)
+        
+        # age
+        min_age = self.request.query_params.get('min_age', None)
+        max_age = self.request.query_params.get('max_age', None)
+        age = self.request.query_params.get('age', None)
+        # region
+        region = self.request.query_params.get('region', None)
+        # gender
+        gender = self.request.query_params.get('gender', None)
+        if patient is not None:
+            queryset = queryset.filter(patient=patient)
+
+        # 解析开始时间和结束时间
+        if start_time is not None:
+            start_time = parse_datetime(start_time)
+            if start_time:
+                queryset = queryset.filter(update_time__gte=start_time)
+
+        if end_time is not None:
+            end_time = parse_datetime(end_time)
+            if end_time:
+                queryset = queryset.filter(update_time__lte=end_time)
+
+        # 过滤
+        if min_age is not None:
+            queryset = queryset.filter(patient__age__gte=min_age)
+        if max_age is not None:
+            queryset = queryset.filter(patient__age__lte=max_age)
+        if region is not None:
+            queryset = queryset.filter(patient__region=region)
+        if gender is not None:
+            queryset = queryset.filter(patient__gender=gender)
+        if age is not None:
+            queryset = queryset.filter(patient__age=age)
+        return queryset
 
 # class DownLoadZipView(APIView):
 #     permission_classes = [IsAuthenticated]
