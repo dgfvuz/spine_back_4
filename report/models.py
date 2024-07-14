@@ -9,6 +9,7 @@ class Report(models.Model):
     X_ray = models.ImageField(upload_to=X_ray_folder,blank=True)
     # 结果
     results = models.JSONField(blank=True, null=True)  # 允许字段为空或者为null，适用于可选字段
+    result = models.CharField(max_length=20, default='正常')
     # 创建时间
     # status有各种状态：生成中、生成失败、未审核、已审核
     status = models.CharField(max_length=20, default='生成中')

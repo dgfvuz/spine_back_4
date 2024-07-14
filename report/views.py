@@ -35,6 +35,7 @@ def generate_report(instance):
     results = getResult(instance.X_ray)
     instance.results = results
     instance.status = '未审核'
+    instance.result = '异常'
     instance.save()    
 
 # 定义HTTP方法为post
@@ -61,12 +62,17 @@ class ListReport(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     def get_queryset(self):
-        queryset = Report.objects.all().order_by('-update_time')
+        queryset = Report.objects.select_related('patient').order_by('-update_time')     
         # 获取查询参数
         patient = self.request.query_params.get('patient', None)
         start_time = self.request.query_params.get('start_time', None)
         end_time = self.request.query_params.get('end_time', None)
         status = self.request.query_params.get('status', None)
+        patient_name = self.request.query_params.get('patient_name', None)
+        if patient_name is not None:
+            print(patient_name)
+            # 
+            queryset = queryset.filter(patient__name__contains=patient_name)
         if status is not None:
             queryset = queryset.filter(status=status)
         if patient is not None:
@@ -118,6 +124,9 @@ class ListAnalysisView(generics.ListAPIView):
         region = self.request.query_params.get('region', None)
         # gender
         gender = self.request.query_params.get('gender', None)
+        result = self.request.query_params.get('result', None)
+        if result is not None:
+            queryset = queryset.filter(result=result)
         if patient is not None:
             queryset = queryset.filter(patient=patient)
 
@@ -132,7 +141,7 @@ class ListAnalysisView(generics.ListAPIView):
             if end_time:
                 queryset = queryset.filter(update_time__lte=end_time)
 
-        # 过滤
+        # 过滤    
         if min_age is not None:
             queryset = queryset.filter(patient__age__gte=min_age)
         if max_age is not None:

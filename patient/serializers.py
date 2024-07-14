@@ -7,6 +7,7 @@ class PatientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
+class PatientRegionSerializer(serializers.Serializer):
+    region = serializers.CharField(max_length=100)
 
     

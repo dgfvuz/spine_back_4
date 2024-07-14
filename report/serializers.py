@@ -6,7 +6,7 @@ class ReportSerializer(serializers.ModelSerializer):
     patient_name = SerializerMethodField()  # 声明SerializerMethodField
     class Meta:
         model = Report
-        fields = ['id', 'patient', 'X_ray', 'results', 'status', 'create_time','update_time','patient_name']
+        fields = ['id', 'patient', 'X_ray', 'results', 'status', 'create_time','update_time','patient_name','result']
 
     def get_patient_name(self, obj):
         return obj.patient.name
@@ -20,7 +20,6 @@ class ReportAnalysisSerializer(serializers.Serializer):
     patient_age = SerializerMethodField()
     patient_region = SerializerMethodField()
     patient_gender = SerializerMethodField()
-    result = SerializerMethodField()
     class Meta:
         model = Report
         fields = {'id','patient','patient_age','patient_region','patient_gender','result','update_time'}
@@ -34,9 +33,3 @@ class ReportAnalysisSerializer(serializers.Serializer):
     def get_patient_gender(self, obj):
         return obj.patient.gender
     
-    def get_result(self, obj):
-        ls = ['胸弯']
-        for item in ls:
-            if item not in obj.results:
-                return '正常'
-        return '异常'
