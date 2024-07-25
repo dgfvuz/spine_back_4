@@ -1,10 +1,20 @@
-avatar
+avatar/*
+!avatar/default.jpg
 
 .conda
 
 db.sqlite3
 
-X_ray
+X_ray/*
+!X_ray/reportHeader.JPG
 
 **/__pycache__/
 **/migrations/
+
+model_runtime
+
+cut_img.jpg
+
+recovered.jpg
+
+models/*

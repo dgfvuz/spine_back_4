@@ -16,6 +16,7 @@ from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 from django.utils.dateparse import parse_datetime
+from memory_profiler import profile
 
 class CreateReport(generics.CreateAPIView):
     queryset = Report.objects.all()
@@ -43,6 +44,7 @@ class RegenerateReportView(generics.GenericAPIView):
     serializer_class = GenerateReportSerializer
     permission_classes = [IsAuthenticated]
 
+    # @profile
     def post(self, request, *args, **kwargs):
         report_id = kwargs['id']
         try:
@@ -70,7 +72,6 @@ class ListReport(generics.ListAPIView):
         status = self.request.query_params.get('status', None)
         patient_name = self.request.query_params.get('patient_name', None)
         if patient_name is not None:
-            print(patient_name)
             # 
             queryset = queryset.filter(patient__name__contains=patient_name)
         if status is not None:
