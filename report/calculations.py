@@ -612,6 +612,7 @@ def find_avt(image):
 # 冠状面平衡
 def find_coronal_balance(image):
 
+
     background = image[:, :, 0]
 
     _, threshold = cv2.threshold(background, 180, 255, cv2.THRESH_BINARY)
@@ -809,19 +810,20 @@ def draw_cobb(lines, box_list, begin_index, end_index, image):
     return [[cr_point, begin0, begin1, end2, end3], [begin_box, end_box]]
     
 def find_rsh_point(output):
+    # cv2.imwrite('output.jpg',output)
     output_left = output[:,0:output.shape[1]//3]
     output_right = output[:,output.shape[1]//3*2:]
     # 找出位于最左边的点
     non_zero_indices = np.where(output_left!=0)[1]
     if non_zero_indices.size == 0:
-        print('no rsh found, left')
+        # print('no rsh found, left')
         return [0,0],[0,0]
     left_min = np.min(non_zero_indices)
     left_point = [np.where(output_left!=0)[0][np.where(output_left!=0)[1]==left_min][0],left_min]
     # 找出位于最右边的点
     non_zero_indices = np.where(output_right!=0)[1]
     if non_zero_indices.size == 0:
-        print('no rsh found, right')
+        # print('no rsh found, right')
         return [0,0],[0,0]
     right_max = np.max(non_zero_indices)
     right_point = [np.where(output_right!=0)[0][np.where(output_right!=0)[1]==right_max][0],right_max+output.shape[1]//3*2]
@@ -1335,6 +1337,16 @@ def find_tissue_point(raw_image,left_point,right_point):
     right_intersection = process_point_set(right_point_set,right_point[1])
     return left_intersection,right_intersection
 
+def process_output(output):
+    # 先找output的轮廓
+    contours, _ = cv2.findContours(output, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # 保留面积最大的两个轮廓
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:2]
+    # 找出位于轮廓范围内的所有像素点
+    mask = np.zeros_like(output)
+    cv2.drawContours(mask, contours, -1, (255), -1)
+    output = cv2.bitwise_and(output, mask)
+    return output
 
 # 函数: find_rsh
 # 函数说明：找到图片的肩高
@@ -1345,8 +1357,22 @@ def find_rsh(image):
     pixels = find_centermeter_per_pixel(raw_image)
     image,shift = split_image(raw_image)
     output = get_Unet_output(image)
-    print('output:',type(output))
-    left_point,right_point = find_rsh_point(output)
+    mask = process_output(output)
+    left_point,right_point = find_rsh_point(mask)
+    # 将image 进行canney边缘检测
+    edges = cv2.Canny(image,30,120)
+    # edges经过mask处理
+    edges = cv2.bitwise_and(edges,mask)
+    left_point_canny,right_point_canny = find_rsh_point(edges)
+    # 计算两次点的距离
+    left_point_distance = abs(left_point[0]-left_point_canny[0]) + abs(left_point[1]-left_point_canny[1])
+    right_point_distance = abs(right_point[0]-right_point_canny[0]) + abs(right_point[1]-right_point_canny[1])
+    # 如果距离小于10, 则left_point,right_point取canny的点
+    if left_point_distance < 10:
+        left_point = left_point_canny
+    if right_point_distance < 10:
+        right_point = right_point_canny
+
     # 画出左右两个点
     # output_img = cv2.cvtColor(output,cv2.COLOR_GRAY2BGR)
     # output_img = cv2.cvtColor(output_img,cv2.COLOR_BGR2RGB)
@@ -1394,14 +1420,14 @@ def find_clavicle_point(output):
     # 找出左边像素值不为0的高度最小的点
     non_zero_indices = np.where(output_left!=0)[0]
     if non_zero_indices.size == 0:
-        print('no clavicle found, left')
+        # print('no clavicle found, left')
         return [0,0],[0,0]
     left_min = np.min(non_zero_indices)
     left_point = [left_min,np.where(output_left!=0)[1][np.where(output_left!=0)[0]==left_min][0]]
     # 找出右边像素值不为0的高度最小的点
     non_zero_indices = np.where(output_right!=0)[0]
     if non_zero_indices.size == 0:
-        print('no clavicle found, right')
+        # print('no clavicle found, right')
         return [0,0],[0,0]
     right_min = np.min(non_zero_indices)
     right_point = [right_min,np.where(output_right!=0)[1][np.where(output_right!=0)[0]==right_min][0]+output.shape[1]//3*2]
@@ -1415,7 +1441,19 @@ def find_clavicle_angle(image):
     raw_image = image
     image,shift = split_image(raw_image)
     output = get_Unet_output(image)
-    left_point,right_point = find_clavicle_point(output)
+    mask = process_output(output)
+    left_point,right_point = find_clavicle_point(mask)
+    # 边缘检测
+    edges = cv2.Canny(image,30,100)
+    # edges经过mask处理
+    edges = cv2.bitwise_and(edges,mask)
+    left_point_canny,right_point_canny = find_clavicle_point(edges)
+    # 如果left_point_canny的值不为[0,0] 则left_point取left_point_canny
+    if left_point_canny != [0,0]:
+        left_point = left_point_canny
+    # 如果right_point_canny的值不为[0,0] 则right_point取right_point_canny
+    if right_point_canny != [0,0]:
+        right_point = right_point_canny
 
     # output_img = cv2.cvtColor(output,cv2.COLOR_GRAY2BGR)
     # output_img = cv2.cvtColor(output_img,cv2.COLOR_BGR2RGB)
@@ -1599,7 +1637,6 @@ def find_TTS(img,result):
     
     y = TTS_eval(resize_cut)
 
-    print("y: ",y)
     left_point = [int(y[0]),center[1]]
     right_point = [int(y[1]),center[1]]
     # 将left_point和right_point转换为原始图片坐标
@@ -1637,7 +1674,7 @@ def find_TTS(img,result):
     # # 保存图片
     # save_img(image, TTS_path)
 
-    tts = int(tts)
+    tts = float(tts)
     left_point = [int(left_point[0]),int(left_point[1])]
     right_point = [int(right_point[0]),int(right_point[1])]
     chest_center = [int(chest_center),int(center[1])]

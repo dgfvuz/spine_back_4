@@ -636,9 +636,11 @@ def getResult(image_file):
 
         C7PL_res,C7PL_points = draw_C7PL(res)
 
+        pixels_per_centimeter = find_centermeter_per_pixel(raw_image)
         avt_res, avt_points = find_avt(res)
-
+        avt_res = [i / pixels_per_centimeter * 10 for i in avt_res]
         coronal_balance_res, coronal_balance_points = find_coronal_balance(res)
+        coronal_balance_res = coronal_balance_res / pixels_per_centimeter * 10
 
         cobb_res, cobb_points, bone_box = find_Cobb_new(res)
 
@@ -648,7 +650,6 @@ def getResult(image_file):
 
         tts_res, tts_point = find_TTS(raw_image,res)
 
-        pixels_per_centimeter = find_centermeter_per_pixel(raw_image)
         # 创建json对象
         result = {
         "pixes_per_centimeter": pixels_per_centimeter,
