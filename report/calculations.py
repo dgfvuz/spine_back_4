@@ -1226,9 +1226,9 @@ def find_Cobb_new(image):
         else:
             up_k = (up_point2[1] - up_point1[1]) / (up_point2[0] - up_point1[0])
         if up_k > 0:
-            direction = "右弯"
+            direction = "右凸"
         else:
-            direction = "左弯"
+            direction = "左凸"
         # 这里还要加一个顶椎,以及顶椎的旋转程度,还得判断是左弯还是右弯
         left_min_index = up_bone[i]
         right_max_index = down_bone[i]
