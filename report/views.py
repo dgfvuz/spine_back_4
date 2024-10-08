@@ -33,7 +33,7 @@ class CreateReport(generics.CreateAPIView):
 def generate_report(instance):
     # 在这里实现报告生成的逻辑
     # 通过调用getResult函数，传入X光片的路径，即可得到结果
-    results = getResult(instance.X_ray)
+    results = getResult(instance.X_ray, instance.report_type)
     instance.results = results
     instance.status = '未审核'
     instance.result = '异常'
@@ -71,6 +71,9 @@ class ListReport(generics.ListAPIView):
         end_time = self.request.query_params.get('end_time', None)
         status = self.request.query_params.get('status', None)
         patient_name = self.request.query_params.get('patient_name', None)
+        report_type = self.request.query_params.get('report_type', None)
+        if report_type is not None:
+            queryset = queryset.filter(report_type=report_type)
         if patient_name is not None:
             # 
             queryset = queryset.filter(patient__name__contains=patient_name)
@@ -91,6 +94,7 @@ class ListReport(generics.ListAPIView):
                 queryset = queryset.filter(update_time__lte=end_time)
 
         return queryset
+    
 
 
 class DetailReport(generics.RetrieveUpdateDestroyAPIView):

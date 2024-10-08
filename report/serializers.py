@@ -6,7 +6,7 @@ class ReportSerializer(serializers.ModelSerializer):
     patient_name = SerializerMethodField()  # 声明SerializerMethodField
     class Meta:
         model = Report
-        fields = ['id', 'patient', 'X_ray', 'results', 'status', 'create_time','update_time','patient_name','result']
+        fields = ['id', 'patient', 'X_ray', 'results', 'status', 'create_time','update_time','patient_name','result', 'report_type']
 
     def get_patient_name(self, obj):
         return obj.patient.name

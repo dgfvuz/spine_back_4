@@ -615,144 +615,187 @@ if __name__ == "__main__":
 
 
 
+
 #  仅仅只有一种方法: 需要把结果恢复到原图像尺寸
-def getResult(image_file):
+def getResult(image_file, report_type):
     lock.acquire()
     try:
+        print("report_type:", report_type)
         print("开始处理图片........")
-        raw_image = open_img(image_file.name)
-        path, preprocess_detail = preprocess_image(image_file.name)
-        res = eval(path)
+        if report_type == '冠状位' or report_type is None:
+            raw_image = open_img(image_file.name)
+            path, preprocess_detail = preprocess_image(image_file.name)
+            res = eval(path)
 
-        res = cv2.cvtColor(np.array(res), cv2.COLOR_RGB2BGR)
-        res = reverse_process(res, preprocess_detail)
-        # 转为cv2
-        # 计算骶骨倾斜
-        SCRL_res,SCRL_points = find_SCRL(res)
-        # 计算胸1锥体倾斜角
-        T1_tile_angle_res,T1_tile_angle_points = find_T1_tile_angle(res)
+            res = cv2.cvtColor(np.array(res), cv2.COLOR_RGB2BGR)
+            res = reverse_process(res, preprocess_detail)
+            # 转为cv2
+            # 计算骶骨倾斜
+            SCRL_res,SCRL_points = find_SCRL(res)
+            # 计算胸1锥体倾斜角
+            T1_tile_angle_res,T1_tile_angle_points = find_T1_tile_angle(res)
 
-        CSVL_res,CSVL_points = draw_CSVL(res)
+            CSVL_res,CSVL_points = draw_CSVL(res)
 
-        C7PL_res,C7PL_points = draw_C7PL(res)
+            C7PL_res,C7PL_points = draw_C7PL(res)
 
-        pixels_per_centimeter = find_centermeter_per_pixel(raw_image)
-        avt_res, avt_points = find_avt(res)
-        avt_res = [i / pixels_per_centimeter * 10 for i in avt_res]
-        coronal_balance_res, coronal_balance_points = find_coronal_balance(res)
-        coronal_balance_res = coronal_balance_res / pixels_per_centimeter * 10
+            pixels_per_centimeter = find_centermeter_per_pixel(raw_image)
+            avt_res, avt_points = find_avt(res)
+            avt_res = [i / pixels_per_centimeter * 10 for i in avt_res]
+            coronal_balance_res, coronal_balance_points = find_coronal_balance(res)
+            coronal_balance_res = coronal_balance_res / pixels_per_centimeter * 10
 
-        cobb_res, cobb_points, bone_box = find_Cobb_new(res)
+            cobb_res, cobb_points, bone_box = find_Cobb_new(res)
 
-        rsh_res, rsh_point = find_rsh(raw_image)
+            rsh_res, rsh_point = find_rsh(raw_image)
 
-        angle_res, angle_point = find_clavicle_angle(raw_image)
+            angle_res, angle_point = find_clavicle_angle(raw_image)
 
-        tts_res, tts_point = find_TTS(raw_image,res)
+            tts_res, tts_point = find_TTS(raw_image,res)
 
-        # 创建json对象
-        result = {
-        "pixes_per_centimeter": pixels_per_centimeter,
-        "bone_box":bone_box,
-        "颈胸弯":{
-            "result": "正常",
-            "cobb":0,
-            "上端椎":"",
-            "顶椎":"",
-            "下端椎":"",
-            "Nash-Moe旋转":"",
-            "points": []
-        },
-        "上胸弯":{
-            "result": "正常",
-            "cobb":0,
-            "上端椎":"",
-            "顶椎":"",
-            "下端椎":"",
-            "Nash-Moe旋转":"",
-            "points": []
-        },
-        "胸弯":{
-            "result": "正常",
-            "cobb":0,
-            "上端椎":"",
-            "顶椎":"",
-            "下端椎":"",
-            "Nash-Moe旋转":"",
-            "points": []       
-        },
-        "胸弯2":{
-            "result": "正常",
-            "cobb":0,
-            "上端椎":"",
-            "顶椎":"",
-            "下端椎":"",
-            "Nash-Moe旋转":"",
-            "points": []
-        },
-        "胸腰弯":{
-            "result": "正常",
-            "cobb":0,
-            "上端椎":"",
-            "顶椎":"",
-            "下端椎":"",
-            "Nash-Moe旋转":"",
-            "points": []
-        },
-        "腰弯":{
-            "result": "正常",
-            "cobb":0,
-            "上端椎":"",
-            "顶椎":"",
-            "下端椎":"",
-            "Nash-Moe旋转":"",
-            "points": []
-        },
-        "冠状面平衡":{
-            "result": coronal_balance_res,
-            "points": coronal_balance_points
-        },
-        "锁骨角":{
-            "result": angle_res,
-            "points": angle_point
-        },
-        "csvl":{
-            "result": CSVL_res,
-            "points": CSVL_points
-        },
-        "c7pl":{
-            "result": C7PL_res,
-            "points": C7PL_points
-        },
-        "顶椎偏距":{
-            "result": avt_res,
-            "points": avt_points
-        },
-        "胸廓躯干倾斜":{
-            "result": tts_res,
-            "points": tts_point
-        },
-        "影像学肩高度":{
-            "result": rsh_res,
-            "points": rsh_point
-        },
-        "胸1锥体倾斜角":{
-            "result": T1_tile_angle_res,
-            "points": T1_tile_angle_points
-        },
-        "骶骨倾斜角":{
-            "result": SCRL_res,
-            "points": SCRL_points
-        },
-    }
-        for i in range(len(cobb_res)):
-            result[cobb_res[i][0]]['result'] = cobb_res[i][1]
-            result[cobb_res[i][0]]['上端椎'] = cobb_res[i][2]
-            result[cobb_res[i][0]]['下端椎'] = cobb_res[i][3]
-            result[cobb_res[i][0]]['顶椎'] = cobb_res[i][4]
-            result[cobb_res[i][0]]['Nash-Moe旋转'] = cobb_res[i][5]
-            result[cobb_res[i][0]]['cobb'] = cobb_res[i][6]
-            result[cobb_res[i][0]]['points'] = cobb_points[i]
+            # 创建json对象
+            result = {
+            "pixes_per_centimeter": pixels_per_centimeter,
+            "bone_box":bone_box,
+            "颈胸弯":{
+                "result": "正常",
+                "cobb":0,
+                "上端椎":"",
+                "顶椎":"",
+                "下端椎":"",
+                "Nash-Moe旋转":"",
+                "points": []
+            },
+            "上胸弯":{
+                "result": "正常",
+                "cobb":0,
+                "上端椎":"",
+                "顶椎":"",
+                "下端椎":"",
+                "Nash-Moe旋转":"",
+                "points": []
+            },
+            "胸弯":{
+                "result": "正常",
+                "cobb":0,
+                "上端椎":"",
+                "顶椎":"",
+                "下端椎":"",
+                "Nash-Moe旋转":"",
+                "points": []       
+            },
+            "胸弯2":{
+                "result": "正常",
+                "cobb":0,
+                "上端椎":"",
+                "顶椎":"",
+                "下端椎":"",
+                "Nash-Moe旋转":"",
+                "points": []
+            },
+            "胸腰弯":{
+                "result": "正常",
+                "cobb":0,
+                "上端椎":"",
+                "顶椎":"",
+                "下端椎":"",
+                "Nash-Moe旋转":"",
+                "points": []
+            },
+            "腰弯":{
+                "result": "正常",
+                "cobb":0,
+                "上端椎":"",
+                "顶椎":"",
+                "下端椎":"",
+                "Nash-Moe旋转":"",
+                "points": []
+            },
+            "冠状面平衡":{
+                "result": coronal_balance_res,
+                "points": coronal_balance_points
+            },
+            "锁骨角":{
+                "result": angle_res,
+                "points": angle_point
+            },
+            "csvl":{
+                "result": CSVL_res,
+                "points": CSVL_points
+            },
+            "c7pl":{
+                "result": C7PL_res,
+                "points": C7PL_points
+            },
+            "顶椎偏距":{
+                "result": avt_res,
+                "points": avt_points
+            },
+            "胸廓躯干倾斜":{
+                "result": tts_res,
+                "points": tts_point
+            },
+            "影像学肩高度":{
+                "result": rsh_res,
+                "points": rsh_point
+            },
+            "胸1锥体倾斜角":{
+                "result": T1_tile_angle_res,
+                "points": T1_tile_angle_points
+            },
+            "骶骨倾斜角":{
+                "result": SCRL_res,
+                "points": SCRL_points
+            },
+        }
+            for i in range(len(cobb_res)):
+                result[cobb_res[i][0]]['result'] = cobb_res[i][1]
+                result[cobb_res[i][0]]['上端椎'] = cobb_res[i][2]
+                result[cobb_res[i][0]]['下端椎'] = cobb_res[i][3]
+                result[cobb_res[i][0]]['顶椎'] = cobb_res[i][4]
+                result[cobb_res[i][0]]['Nash-Moe旋转'] = cobb_res[i][5]
+                result[cobb_res[i][0]]['cobb'] = cobb_res[i][6]
+                result[cobb_res[i][0]]['points'] = cobb_points[i]
+        else:
+            angles, points = find_sagittal(cv2.imread(image_file.name))
+            sva_res, sva_points = find_sva(points[0], points[1], points[14])
+            # 将points转为int
+            points = [[int(i[0]), int(i[1])] for i in points]
+            result = {
+                "颈椎前凸角": {
+                    "result": angles[0],
+                    "points": points[0:4]
+                },
+                "胸椎后凸角": {
+                    "result": angles[1],
+                    "points": points[4:6] + points[8:10]
+                },
+                "胸腰段后凸角":{
+                    "result": angles[2],
+                    "points": points[6:8] + points[12:14]
+                },
+                "腰椎前凸角":{
+                    "result": angles[3],
+                    "points": points[10:12] + points[14:16]
+                },
+                "骨盆入射角":{
+                    "result": angles[4],
+                    "points": points[14:18]
+                },
+                "骶骨倾斜角":{
+                    "result": angles[5],
+                    "points": points[14:18]
+                },
+                "骨盆倾斜角":{
+                    "result": angles[6],
+                    "points": points[14:18]
+                },
+                "脊柱矢状轴":{
+                    "result": sva_res,
+                    "points": sva_points
+                }
+            }
+            
         print("处理完成........")
     finally:
         lock.release()

@@ -2,6 +2,8 @@ import os
 import cv2
 import numpy as np
 import math
+
+import StackHourglass.train
 from .utils import read_image,split_image
 from PIL import Image
 import pytesseract
@@ -10,6 +12,7 @@ import imutils
 from .TTS import TTS_eval
 from .VR import VR_eval
 from memory_profiler import profile
+import StackHourglass
  
 # @AUTHOR: yasiare
 # @description: 用来找到图像中像素厘米比
@@ -1681,6 +1684,93 @@ def find_TTS(img,result):
     center = [int(center[0]),int(center[1])]
     box = [[int(point[0]),int(point[1])] for point in box]
     return tts,[[left_point, right_point, chest_center, center],box,pixels]
+
+
+def get_angle(point1,point2):
+    """
+    函数功能: 
+        计算两点之间的夹角, 这是辅助函数
+
+    输入参数:
+        point1: 第一个点的坐标
+        point2: 第二个点的坐标
+
+    返回值:
+        两点之间的夹角
+    """
+    if point2[0] == point1[0]:
+        return 90
+    return 0 - np.arctan((point2[1] - point1[1] + 1e-10) / (point2[0] - point1[0] + 1e-10)) * 180 / np.pi
+
+def find_points_center(point1,point2):
+    """
+    函数功能: 
+        计算两点之间的中心点,这是辅助函数
+
+    输入参数:
+        point1: 第一个点的坐标
+        point2: 第二个点的坐标
+
+    返回值:
+        两点之间的中心点
+    """
+    return [(point1[0] + point2[0]) // 2, (point1[1] + point2[1]) // 2]
+
+def find_sagittal(image):
+    """
+    函数功能: 
+        测量矢状位参数
+
+    输入参数:
+        image: 输入的图片, cv2格式
+
+    返回值:
+            [c2与c7的夹角,t5与t12的夹角,t10与l2的夹角,l1与s1的夹角,骨盆入射角,骶骨倾斜角SS,骨盆倾斜角PT], points = [c2_left, c2_right, c7_left, c7_right, t5_left, t5_right, t10_left, t10_right, t12_left, t12_right, l1_left, l1_right,l2_left, l2_right, s1_left, s1_right]
+    """
+    target_points = StackHourglass.train.eval(image)
+    c2_angle = get_angle(target_points[0],target_points[1])
+    c7_angle = get_angle(target_points[2],target_points[3])
+    # t5与t12的夹角
+    t5_angle = get_angle(target_points[4],target_points[5])
+    t12_angle = get_angle(target_points[8],target_points[9])
+    # t10与l2的夹角
+    t10_angle = get_angle(target_points[6],target_points[7])
+    l2_angle = get_angle(target_points[12],target_points[13])
+    # l1与s1的夹角
+    l1_angle = get_angle(target_points[10],target_points[11])
+    s1_angle = get_angle(target_points[14],target_points[15])
+    # 骨盆入射角
+    # cf中心
+    # s1中心
+    cf = find_points_center(target_points[10],target_points[11])
+    s1 = find_points_center(target_points[14],target_points[15])
+    cf_s1 = get_angle(cf,s1)
+    
+    
+    return [c7_angle - c2_angle,t12_angle - t5_angle,l2_angle - t10_angle,s1_angle - l1_angle, cf_s1 + 90 - s1_angle, s1_angle, 90+cf_s1],target_points
+
+
+
+def find_sva(c2_left,c2_right,s1_left):
+    """
+    函数功能:
+        计算SVA, 脊柱矢状轴
+
+    输入参数:
+        c2_left: c2下终板左侧点
+        c2_right: c2下终板右侧点
+        s1_left: s1终板左侧点
+
+    返回值:
+        SVA, 决定脊柱矢状轴的两个点
+    """
+    center = find_points_center(c2_left,c2_right)
+    # center和s1_left转为int
+    center = [int(center[0]),int(center[1])]
+    s1_left = [int(s1_left[0]),int(s1_left[1])]
+    return abs(center[0] - s1_left[0]), [center,s1_left]
+
+
 
 
 

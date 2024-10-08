@@ -13,6 +13,7 @@ class Report(models.Model):
     # 创建时间
     # status有各种状态：生成中、生成失败、未审核、已审核
     status = models.CharField(max_length=20, default='生成中')
+    report_type = models.CharField(max_length=20, default='冠状位')
     create_time = models.DateTimeField(auto_now_add=True)
     # 更新时间
     update_time = models.DateTimeField(auto_now=True)
