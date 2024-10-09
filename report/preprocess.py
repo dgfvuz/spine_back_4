@@ -7,8 +7,11 @@ from memory_profiler import profile
 RESULT_PATH = "./model_runtime/mid_result/"
 
 # 输入图片，返回处理后的图片
-def resize(img):
-    return img.resize((512, 1280), Image.LANCZOS)
+def resize(image):
+    width, height = image.size
+    height_factor = 1280 / height
+    out = image.resize((int(width*height_factor), 1280), Image.LANCZOS)
+    return out
 
 
 def cut_image(img):
